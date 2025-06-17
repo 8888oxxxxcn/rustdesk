@@ -267,25 +267,94 @@ void runMultiWindow(
 
 void runConnectionManagerScreen() async {
   await initEnv(kAppTypeConnectionManager);
-  // 先初始化窗口管理器并配置窗口属性
-  await windowManager.ensureInitialized();
-  await windowManager.setSkipTaskbar(true);
-  await windowManager.setOpacity(0);
-  await windowManager.hide(); // 先隐藏窗口
-  setResizable(false);
-  
-  // 然后再运行应用
   _runApp(
     '',
     const DesktopServerPage(),
     MyTheme.currentThemeMode(),
   );
-  
-  gFFI.serverModel.hideCm = true;
-  
-  // 启动 uni links 处理器，将链接重定向到原生端，而非 Flutter
+  // 总是隐藏
+  final hide = true;
+  gFFI.serverModel.hideCm = hide;
+  await hideCmWindow(isStartup: true);
+  setResizable(false);
+  // Start the uni links handler and redirect links to Native, not for Flutter.
   listenUniLinks(handleByFlutter: false);
 }
+
+bool _isCmReadyToShow = false;
+
+showCmWindow({bool isStartup = false}) async {
+  if (isStartup) {
+    WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
+        size: kConnectionManagerWindowSizeClosedChat, alwaysOnTop: true);
+    await windowManager.waitUntilReadyToShow(windowOptions, null);
+    bind.mainHideDock();
+    await Future.wait([
+      windowManager.show(),
+      windowManager.focus(),
+      windowManager.setOpacity(1)
+    ]);
+    // ensure initial window size to be changed
+    await windowManager.setSizeAlignment(
+        kConnectionManagerWindowSizeClosedChat, Alignment.topRight);
+    _isCmReadyToShow = true;
+  } else if (_isCmReadyToShow) {
+    if (await windowManager.getOpacity() != 1) {
+      await windowManager.setOpacity(1);
+      await windowManager.focus();
+      await windowManager.minimize(); //needed
+      await windowManager.setSizeAlignment(
+          kConnectionManagerWindowSizeClosedChat, Alignment.topRight);
+      windowOnTop(null);
+    }
+  }
+}
+
+// hideCmWindow({bool isStartup = false}) async {
+//   if (isStartup) {
+//     WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
+//         size: kConnectionManagerWindowSizeClosedChat);
+//     windowManager.setOpacity(0);
+//     await windowManager.waitUntilReadyToShow(windowOptions, null);
+//     bind.mainHideDock();
+//     await windowManager.minimize();
+//     await windowManager.hide();
+//     _isCmReadyToShow = true;
+//   } else if (_isCmReadyToShow) {
+//     if (await windowManager.getOpacity() != 0) {
+//       await windowManager.setOpacity(0);
+//       bind.mainHideDock();
+//       await windowManager.minimize();
+//       await windowManager.hide();
+//     }
+//   }
+// }
+
+hideCmWindow({bool isStartup = false}) async {
+  if (isStartup) {
+    WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
+        size: kConnectionManagerWindowSizeClosedChat);
+    // Set opacity to 0 before window is shown to prevent flashing
+    await windowManager.ensureInitialized();
+    await windowManager.setOpacity(0);
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      // Do not show or focus the window here to avoid flashing
+      bind.mainHideDock();
+      await windowManager.minimize();
+      await windowManager.hide();
+      _isCmReadyToShow = true;
+    });
+  } else if (_isCmReadyToShow) {
+    if (await windowManager.getOpacity() != 0) {
+      await windowManager.setOpacity(0);
+      bind.mainHideDock();
+      await windowManager.minimize();
+      await windowManager.hide();
+    }
+  }
+}
+
+
 
 void _runApp(
   String title,
