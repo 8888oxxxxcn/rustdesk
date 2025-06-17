@@ -266,22 +266,25 @@ void runMultiWindow(
 }
 
 void runConnectionManagerScreen() async {
+  // 只做初始化，不显示窗口
   await initEnv(kAppTypeConnectionManager);
-  _runApp(
-    '',
-    const DesktopServerPage(),
-    MyTheme.currentThemeMode(),
-  );
-  final hide = await bind.cmGetConfig(name: "hide_cm") == 'true';
-  gFFI.serverModel.hideCm = hide;
-  if (hide) {
-    await hideCmWindow(isStartup: true);
-  } else {
-    await showCmWindow(isStartup: true);
-  }
-  setResizable(false);
-  // Start the uni links handler and redirect links to Native, not for Flutter.
-  listenUniLinks(handleByFlutter: false);
+  return;
+  // 以下代码不会被执行
+  // _runApp(
+  //   '',
+  //   const DesktopServerPage(),
+  //   MyTheme.currentThemeMode(),
+  // );
+  // final hide = await bind.cmGetConfig(name: "hide_cm") == 'true';
+  // gFFI.serverModel.hideCm = hide;
+  // if (hide) {
+  //   await hideCmWindow(isStartup: true);
+  // } else {
+  //   await showCmWindow(isStartup: true);
+  // }
+  // setResizable(false);
+  // // Start the uni links handler and redirect links to Native, not for Flutter.
+  // listenUniLinks(handleByFlutter: false);
 }
 
 bool _isCmReadyToShow = false;
@@ -394,7 +397,7 @@ WindowOptions getHiddenTitleBarWindowOptions(
   return WindowOptions(
     size: size,
     center: center,
-    backgroundColor: (isMacOS && isMainWindow) ? null : Colors.transparent,
+    backgroundColor: (isMacOS && isMainWindow) ? null : Colors.transparrunConnectionManagerScreenent,
     skipTaskbar: false,
     titleBarStyle: defaultTitleBarStyle,
     alwaysOnTop: alwaysOnTop,
