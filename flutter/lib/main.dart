@@ -310,30 +310,11 @@ showCmWindow({bool isStartup = false}) async {
   }
 }
 
-// hideCmWindow({bool isStartup = false}) async {
-//   if (isStartup) {
-//     WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
-//         size: kConnectionManagerWindowSizeClosedChat);
-//     windowManager.setOpacity(0);
-//     await windowManager.waitUntilReadyToShow(windowOptions, null);
-//     bind.mainHideDock();
-//     await windowManager.minimize();
-//     await windowManager.hide();
-//     _isCmReadyToShow = true;
-//   } else if (_isCmReadyToShow) {
-//     if (await windowManager.getOpacity() != 0) {
-//       await windowManager.setOpacity(0);
-//       bind.mainHideDock();
-//       await windowManager.minimize();
-//       await windowManager.hide();
-//     }
-//   }
-// }
 
 hideCmWindow({bool isStartup = false}) async {
   if (isStartup) {
     WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
-        size: kConnectionManagerWindowSizeClosedChat);
+        size: kConnectionManagerWindowSizeClosedChat, skipTaskbar: true);
     // Set opacity to 0 before window is shown to prevent flashing
     await windowManager.ensureInitialized();
     await windowManager.setOpacity(0);
@@ -342,6 +323,9 @@ hideCmWindow({bool isStartup = false}) async {
       bind.mainHideDock();
       await windowManager.minimize();
       await windowManager.hide();
+      if (isMacOS) {
+        await windowManager.setSkipTaskbar(true);
+      }
       _isCmReadyToShow = true;
     });
   } else if (_isCmReadyToShow) {
@@ -350,6 +334,9 @@ hideCmWindow({bool isStartup = false}) async {
       bind.mainHideDock();
       await windowManager.minimize();
       await windowManager.hide();
+      if (isMacOS) {
+        await windowManager.setSkipTaskbar(true);
+      }
     }
   }
 }
