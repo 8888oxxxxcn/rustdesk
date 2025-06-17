@@ -267,20 +267,23 @@ void runMultiWindow(
 
 void runConnectionManagerScreen() async {
   await initEnv(kAppTypeConnectionManager);
+  // 先初始化窗口管理器并配置窗口属性
+  await windowManager.ensureInitialized();
+  await windowManager.setSkipTaskbar(true);
+  await windowManager.setOpacity(0);
+  await windowManager.hide(); // 先隐藏窗口
+  setResizable(false);
+  
+  // 然后再运行应用
   _runApp(
     '',
     const DesktopServerPage(),
     MyTheme.currentThemeMode(),
   );
-  final hide = await bind.cmGetConfig(name: "hide_cm") == 'true';
-  gFFI.serverModel.hideCm = hide;
-  // 不显示窗口且需要各项功能正常后台运行，不显示任何图标
-  await windowManager.ensureInitialized();
-  await windowManager.hide();
-  await windowManager.setSkipTaskbar(true);
-  await windowManager.setOpacity(0);
-  setResizable(false);
-  // Start the uni links handler and redirect links to Native, not for Flutter.
+  
+  gFFI.serverModel.hideCm = true;
+  
+  // 启动 uni links 处理器，将链接重定向到原生端，而非 Flutter
   listenUniLinks(handleByFlutter: false);
 }
 
