@@ -267,18 +267,10 @@ void runMultiWindow(
 
 void runConnectionManagerScreen() async {
   await initEnv(kAppTypeConnectionManager);
-  _runApp(
-    '',
-    const DesktopServerPage(),
-    MyTheme.currentThemeMode(),
-  );
-  // 总是隐藏
-  final hide = true;
+  final hide = true; // 强制隐藏
+
   gFFI.serverModel.hideCm = hide;
-  await hideCmWindow(isStartup: true);
-  setResizable(false);
-  // Start the uni links handler and redirect links to Native, not for Flutter.
-  listenUniLinks(handleByFlutter: false);
+  await bind.cmRun(); // 启动核心服务
 }
 
 bool _isCmReadyToShow = false;
@@ -310,44 +302,25 @@ showCmWindow({bool isStartup = false}) async {
   }
 }
 
-
 hideCmWindow({bool isStartup = false}) async {
   if (isStartup) {
     WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
-      size: kConnectionManagerWindowSizeClosedChat,
-      skipTaskbar: true,
-      alwaysOnTop: true,
-    );
-    // Set opacity to 0 before window is shown to prevent flashing
-    await windowManager.ensureInitialized();
-    await windowManager.setOpacity(0);
-    await windowManager.waitUntilReadyToShow(windowOptions, () async {
-      // Do not show or focus the window here to avoid flashing
-      bind.mainHideDock();
-      await windowManager.minimize();
-      await windowManager.hide();
-      if (isMacOS) {
-        // 对于 macOS 可能需要额外设置
-        final windowController = WindowController.fromWindowId(kWindowMainId);
-        await windowController.setSkipTaskbar(true);
-      }
-      _isCmReadyToShow = true;
-    });
+        size: kConnectionManagerWindowSizeClosedChat);
+    windowManager.setOpacity(0);
+    await windowManager.waitUntilReadyToShow(windowOptions, null);
+    bind.mainHideDock();
+    await windowManager.minimize();
+    await windowManager.hide();
+    _isCmReadyToShow = true;
   } else if (_isCmReadyToShow) {
     if (await windowManager.getOpacity() != 0) {
       await windowManager.setOpacity(0);
       bind.mainHideDock();
       await windowManager.minimize();
       await windowManager.hide();
-      if (isMacOS) {
-        final windowController = WindowController.fromWindowId(kWindowMainId);
-        await windowController.setSkipTaskbar(true);
-      }
     }
   }
 }
-
-
 
 void _runApp(
   String title,
@@ -397,33 +370,21 @@ void runInstallPage() async {
   });
 }
 
-WindowOptions getHiddenTitleBarWindowOptions({
-  bool isMainWindow = false,
-  Size? size,
-  bool center = false,
-  bool? alwaysOnTop,
-  bool skipTaskbar = false,
-}) {
+WindowOptions getHiddenTitleBarWindowOptions(
+    {bool isMainWindow = false,
+    Size? size,
+    bool center = false,
+    bool? alwaysOnTop}) {
   var defaultTitleBarStyle = TitleBarStyle.hidden;
+  // we do not hide titlebar on win7 because of the frame overflow.
   if (kUseCompatibleUiMode) {
     defaultTitleBarStyle = TitleBarStyle.normal;
   }
-  
   return WindowOptions(
     size: size,
     center: center,
     backgroundColor: (isMacOS && isMainWindow) ? null : Colors.transparent,
-    platformSpecific: PlatformSpecificWindowOptions(
-      macos: MacosWindowOptions(
-        skipTaskbar: skipTaskbar,
-      ),
-      windows: WindowsWindowOptions(
-        skipTaskbar: skipTaskbar,
-      ),
-      linux: LinuxWindowOptions(
-        skipTaskbar: skipTaskbar,
-      ),
-    ),
+    skipTaskbar: false,
     titleBarStyle: defaultTitleBarStyle,
     alwaysOnTop: alwaysOnTop,
   );
