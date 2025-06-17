@@ -97,16 +97,8 @@ Future<void> main(List<String> args) async {
   } else if (args.isNotEmpty && args.first == '--cm') {
     debugPrint("--cm started");
     desktopType = DesktopType.cm;
-    await windowManager.ensureInitialized();
-    // 只初始化环境，不显示任何界面
     await initEnv(kAppTypeConnectionManager);
-    // 不调用 runConnectionManagerScreen()
-    // 保持后台运行
-    // 不显示窗口
-    // 可选：最小化并隐藏窗口，防止偶然弹出
-    await windowManager.minimize();
-    await windowManager.hide();
-    // 不需要 setResizable、listenUniLinks 等
+    return;
   } else if (args.contains('--install')) {
     runInstallPage();
   } else {
