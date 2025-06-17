@@ -97,8 +97,8 @@ Future<void> main(List<String> args) async {
   } else if (args.isNotEmpty && args.first == '--cm') {
     debugPrint("--cm started");
     desktopType = DesktopType.cm;
-    await initEnv(kAppTypeConnectionManager);
-    return;
+    await windowManager.ensureInitialized();
+    runConnectionManagerScreen();
   } else if (args.contains('--install')) {
     runInstallPage();
   } else {
@@ -272,7 +272,7 @@ void runConnectionManagerScreen() async {
     const DesktopServerPage(),
     MyTheme.currentThemeMode(),
   );
-  final hide = await bind.cmGetConfig(name: "hide_cm") == 'true';
+  final hide = true;
   gFFI.serverModel.hideCm = hide;
   if (hide) {
     await hideCmWindow(isStartup: true);

