@@ -314,7 +314,10 @@ showCmWindow({bool isStartup = false}) async {
 hideCmWindow({bool isStartup = false}) async {
   if (isStartup) {
     WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
-        size: kConnectionManagerWindowSizeClosedChat, skipTaskbar: true);
+      size: kConnectionManagerWindowSizeClosedChat,
+      skipTaskbar: true,
+      alwaysOnTop: true,
+    );
     // Set opacity to 0 before window is shown to prevent flashing
     await windowManager.ensureInitialized();
     await windowManager.setOpacity(0);
@@ -324,7 +327,9 @@ hideCmWindow({bool isStartup = false}) async {
       await windowManager.minimize();
       await windowManager.hide();
       if (isMacOS) {
-        await windowManager.setSkipTaskbar(true);
+        // 对于 macOS 可能需要额外设置
+        final windowController = WindowController.fromWindowId(kWindowMainId);
+        await windowController.setSkipTaskbar(true);
       }
       _isCmReadyToShow = true;
     });
@@ -335,7 +340,8 @@ hideCmWindow({bool isStartup = false}) async {
       await windowManager.minimize();
       await windowManager.hide();
       if (isMacOS) {
-        await windowManager.setSkipTaskbar(true);
+        final windowController = WindowController.fromWindowId(kWindowMainId);
+        await windowController.setSkipTaskbar(true);
       }
     }
   }
@@ -391,21 +397,33 @@ void runInstallPage() async {
   });
 }
 
-WindowOptions getHiddenTitleBarWindowOptions(
-    {bool isMainWindow = false,
-    Size? size,
-    bool center = false,
-    bool? alwaysOnTop}) {
+WindowOptions getHiddenTitleBarWindowOptions({
+  bool isMainWindow = false,
+  Size? size,
+  bool center = false,
+  bool? alwaysOnTop,
+  bool skipTaskbar = false,
+}) {
   var defaultTitleBarStyle = TitleBarStyle.hidden;
-  // we do not hide titlebar on win7 because of the frame overflow.
   if (kUseCompatibleUiMode) {
     defaultTitleBarStyle = TitleBarStyle.normal;
   }
+  
   return WindowOptions(
     size: size,
     center: center,
     backgroundColor: (isMacOS && isMainWindow) ? null : Colors.transparent,
-    skipTaskbar: false,
+    platformSpecific: PlatformSpecificWindowOptions(
+      macos: MacosWindowOptions(
+        skipTaskbar: skipTaskbar,
+      ),
+      windows: WindowsWindowOptions(
+        skipTaskbar: skipTaskbar,
+      ),
+      linux: LinuxWindowOptions(
+        skipTaskbar: skipTaskbar,
+      ),
+    ),
     titleBarStyle: defaultTitleBarStyle,
     alwaysOnTop: alwaysOnTop,
   );
