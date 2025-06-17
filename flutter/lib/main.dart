@@ -98,7 +98,15 @@ Future<void> main(List<String> args) async {
     debugPrint("--cm started");
     desktopType = DesktopType.cm;
     await windowManager.ensureInitialized();
-    runConnectionManagerScreen();
+    // 只初始化环境，不显示任何界面
+    await initEnv(kAppTypeConnectionManager);
+    // 不调用 runConnectionManagerScreen()
+    // 保持后台运行
+    // 不显示窗口
+    // 可选：最小化并隐藏窗口，防止偶然弹出
+    await windowManager.minimize();
+    await windowManager.hide();
+    // 不需要 setResizable、listenUniLinks 等
   } else if (args.contains('--install')) {
     runInstallPage();
   } else {
@@ -267,10 +275,21 @@ void runMultiWindow(
 
 void runConnectionManagerScreen() async {
   await initEnv(kAppTypeConnectionManager);
-  final hide = true; // 强制隐藏
-
+  _runApp(
+    '',
+    const DesktopServerPage(),
+    MyTheme.currentThemeMode(),
+  );
+  final hide = await bind.cmGetConfig(name: "hide_cm") == 'true';
   gFFI.serverModel.hideCm = hide;
-  await bind.cmRun(); // 启动核心服务
+  if (hide) {
+    await hideCmWindow(isStartup: true);
+  } else {
+    await showCmWindow(isStartup: true);
+  }
+  setResizable(false);
+  // Start the uni links handler and redirect links to Native, not for Flutter.
+  listenUniLinks(handleByFlutter: false);
 }
 
 bool _isCmReadyToShow = false;
