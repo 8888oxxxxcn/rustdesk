@@ -322,6 +322,10 @@ hideCmWindow({bool isStartup = false}) async {
     bind.mainHideDock();
     await windowManager.minimize();
     await windowManager.hide();
+    if (isMacOS) {
+      // 再次确保 Dock 隐藏
+      bind.mainHideDock();
+    }
     _isCmReadyToShow = true;
   } else if (_isCmReadyToShow) {
     if (await windowManager.getOpacity() != 0) {
@@ -329,6 +333,10 @@ hideCmWindow({bool isStartup = false}) async {
       bind.mainHideDock();
       await windowManager.minimize();
       await windowManager.hide();
+      if (isMacOS) {
+        // 再次确保 Dock 隐藏
+        bind.mainHideDock();
+      }
     }
   }
 }
