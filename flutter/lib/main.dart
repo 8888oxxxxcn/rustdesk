@@ -397,7 +397,7 @@ WindowOptions getHiddenTitleBarWindowOptions(
   return WindowOptions(
     size: size,
     center: center,
-    backgroundColor: (isMacOS && isMainWindow) ? null : Colors.transparrunConnectionManagerScreenent,
+    backgroundColor: (isMacOS && isMainWindow) ? null : Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: defaultTitleBarStyle,
     alwaysOnTop: alwaysOnTop,
