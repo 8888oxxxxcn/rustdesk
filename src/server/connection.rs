@@ -26,7 +26,6 @@ use cidr_utils::cidr::IpCidr;
 use hbb_common::platform::linux::run_cmds;
 #[cfg(target_os = "android")]
 use hbb_common::protobuf::EnumOrUnknown;
-use sha2::{Digest, Sha256};
 use hbb_common::{
     config::{self, keys, Config, TrustedDevice},
     fs::{self, can_enable_overwrite_detection, JobType},
