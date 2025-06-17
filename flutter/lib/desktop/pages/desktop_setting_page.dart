@@ -520,13 +520,14 @@ class _GeneralState extends State<_General> {
               isServer: false,
             ),
           ),
-        if (!isWeb && !bind.isCustomClient())
-          _OptionCheckBox(
-            context,
-            'Check for software update on startup',
-            kOptionEnableCheckUpdate,
-            isServer: false,
-          ),
+        // 隐藏“启动时检查更新”按钮
+        // if (!isWeb && !bind.isCustomClient())
+        //   _OptionCheckBox(
+        //     context,
+        //     'Check for software update on startup',
+        //     kOptionEnableCheckUpdate,
+        //     isServer: false,
+        //   ),
         if (showAutoUpdate)
           _OptionCheckBox(
             context,
@@ -806,9 +807,9 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
             preventMouseKeyBuilder(
               block: locked,
               child: Column(children: [
-                permissions(context),
+                // permissions(context),
                 password(context),
-                _Card(title: '2FA', children: [tfa()]),
+                // _Card(title: '2FA', children: [tfa()]),
                 _Card(title: 'ID', children: [changeId()]),
                 more(context),
               ]),
@@ -1196,11 +1197,12 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
       ...directIp(context),
       whitelist(),
       ...autoDisconnect(context),
-      if (bind.mainIsInstalled())
-        _OptionCheckBox(context, 'allow-only-conn-window-open-tip',
-            'allow-only-conn-window-open',
-            reverse: false, enabled: enabled),
-      if (bind.mainIsInstalled()) unlockPin()
+      // 隐藏“仅当 RustDesk 窗口打开时允许连接”和“解锁 PIN”设置的选项
+      // if (bind.mainIsInstalled())
+      //   _OptionCheckBox(context, 'allow-only-conn-window-open-tip',
+      //       'allow-only-conn-window-open',
+      //       reverse: false, enabled: enabled),
+      // if (bind.mainIsInstalled()) unlockPin()
     ]);
   }
 

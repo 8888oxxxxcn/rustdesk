@@ -130,6 +130,9 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
     _enableTrustedDevices = mainGetBoolOptionSync(kOptionEnableTrustedDevices);
     _enableUdpPunch = mainGetLocalBoolOptionSync(kOptionEnableUdpPunch);
     _enableIpv6Punch = mainGetLocalBoolOptionSync(kOptionEnableIpv6Punch);
+    // 强制关闭启动时检查更新
+    _checkUpdateOnStartup = false;
+    mainSetLocalBoolOption(kOptionEnableCheckUpdate, false);
   }
 
   @override
@@ -571,19 +574,19 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
         }));
 
     if (!bind.isCustomClient()) {
-      enhancementsTiles.add(
-        SettingsTile.switchTile(
-          initialValue: _checkUpdateOnStartup,
-          title:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(translate('Check for software update on startup')),
-          ]),
-          onToggle: (bool toValue) async {
-            await mainSetLocalBoolOption(kOptionEnableCheckUpdate, toValue);
-            setState(() => _checkUpdateOnStartup = toValue);
-          },
-        ),
-      );
+      // enhancementsTiles.add(
+      //   SettingsTile.switchTile(
+      //     initialValue: _checkUpdateOnStartup,
+      //     title:
+      //         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      //       Text(translate('Check for software update on startup')),
+      //     ]),
+      //     onToggle: (bool toValue) async {
+      //       await mainSetLocalBoolOption(kOptionEnableCheckUpdate, toValue);
+      //       setState(() => _checkUpdateOnStartup = toValue);
+      //     },
+      //   ),
+      // );
     }
 
     onFloatingWindowChanged(bool toValue) async {
