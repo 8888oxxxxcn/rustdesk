@@ -879,7 +879,7 @@ pub fn is_modifier(evt: &KeyEvent) -> bool {
 }
 
 pub fn check_software_update() {
-    Ok(())
+    log::info!("软件更新检查已被禁用");
 }
 
 #[tokio::main(flavor = "current_thread")]
