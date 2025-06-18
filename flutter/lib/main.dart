@@ -320,23 +320,19 @@ hideCmWindow({bool isStartup = false}) async {
     windowManager.setOpacity(0);
     await windowManager.waitUntilReadyToShow(windowOptions, null);
     bind.mainHideDock();
-    await windowManager.minimize();
-    await windowManager.hide();
-    if (isMacOS) {
-      // 使用 setActivationPolicy 确保从 Dock 中移除
-      await windowManager.setActivationPolicy(ActivationPolicy.prohibited);
+    if (!isMacOS) {
+        await windowManager.minimize();
     }
+    await windowManager.hide();
     _isCmReadyToShow = true;
   } else if (_isCmReadyToShow) {
     if (await windowManager.getOpacity() != 0) {
       await windowManager.setOpacity(0);
       bind.mainHideDock();
-      await windowManager.minimize();
-      await windowManager.hide();
-      if (isMacOS) {
-        // 使用 setActivationPolicy 确保从 Dock 中移除
-        await windowManager.setActivationPolicy(ActivationPolicy.prohibited);
+      if (!isMacOS) {
+        await windowManager.minimize();
       }
+      await windowManager.hide();
     }
   }
 }
